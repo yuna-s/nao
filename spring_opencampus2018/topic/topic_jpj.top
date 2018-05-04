@@ -1,0 +1,192 @@
+topic: ~topic()
+language: jpj
+
+concept: (name) [相澤　ゆうた ともひろ　ゆうなす　あかり　しのぶん　ジャック　ミッシェル　かつらだ　こういち　ハゲ　がみん　]
+concept: (greetings) [はーい はろー こんにちは こんにちわ どうも　やっほー　やああ　やー　やあ]
+concept: (yes) [Yes yes ああ　はい　うん　おう]
+concept: (no) [no No いや　いいえ]
+concept: (first_person) [わたし　私]
+concept: (violent_word) "{ナオは}[くそ　へぼい　ばか　あほ　うざい　だまれ　飽きた　しね　きもい　うるさい　だまって　しつこい 音声認識の精度が悪い　バランス力がない "ポンコツ{ロボット}"]"
+concept: (lol) [草　面白い　草はえる　くさはえる]
+concept: (positive_word) [かわいい　かわいいね　かっこいい　すてき　やさしい　賢い　かしこい　頭いい　イケメン ハイテク　りりしい　かっこいいね　おもしろい　おもしろいね　だいすき　いいね　ナイス　すごいね　すごい　えらい　すさまじい　おお　おおお　悪くはない　"~first_person　もほしい"　ほしい]
+concept: (bye) [ばいばい　バイバイ　またね　またな　じゃあね　じゃあ　さよなら　あばよ　アディオス]
+concept: (grad) [ありがとうございます　うれしいな　うれしいです　わーい　やったー　やったあ　よっしゃあ]
+
+%script
+def test():
+    tts = ALProxy("ALTextToSpeech")#ここだとエラーが出る
+    tts.say("関す呼び出しテスト")
+%script
+
+u: (~greetings) "\vct=170\^rand~greetings"　$face_reco = 1
+%script
+def is_friend(name):
+    memory = ALProxy("ALMemory")
+    if not name in memory.getDataList(name):
+        memory.insertData(name,0)
+    return memory.getData(name) > 0
+%script
+
+
+u: (~positive_word) ^rand~grad $get_damage =-1
+u: (~bye)今日は、東京理科大学のオープンキャンパスに来てくれて、ありがとうございます。　また遊んでくださいね、ばいばーい。
+%script
+fd = ALProxy("ALFaceDetection")
+ts = ALProxy("ALTextToSpeech")
+    
+facelist=fd.getLearnedFacesList()    
+for i in facelist:
+    if not (i == "ゆうなす" or i == "ジャック" or i== "しのぶん"):
+        ts.say(i+"さん")        
+        fd.forgetPerson(i)          
+%script  
+    
+u: (歌ってみて) 下手ですが、ここで一曲。　きら\pau=100\きら\pau=100\ひかる\pau=1000\やっぱりはずかしいのでやめます。
+
+u: (自己紹介してください) 私はAldebaran社によって作られたロボット、NAOです。ペッパーくんとは兄弟なんです。えへへ。
+    u1:(何ができますか)今現在できることは、あいさつを返す、名前と顔を覚える、顔の名前を思い出す、太極拳、サッカーをすることができます。
+        u2:(サッカー):^goto(soccer)
+        u2:(太極拳):^goto(taichi)
+
+u:(太極拳してね)%taichi やってみます?
+%script
+behavior = ALProxy("ALBehaviorManager")
+behavior.post.runBehavior('taichi-dance-free')
+%script
+
+u:(サッカーしようぜ)%soccer OK!
+%script
+behavior = ALProxy("ALBehaviorManager")
+behavior.post.runBehavior('soccer-demonstration')
+%script
+
+u: (立ち上がってください) OK!! OK!!! %script
+ALProxy("ALRobotPosture").goToPosture("Stand",1)
+%script
+
+u: (特技は?) 回ることができます。
+    u1:(やってみて{ください})　^goto(rotate)
+u:(回ってみろ)%rotate
+%script
+motion = ALProxy("ALMotion")
+motion.moveToward(0,0,0.5) #めっちゃ回るぜ。というか止まらない
+import time
+tts = ALProxy("ALTextToSpeech")
+tts.say("OK!!,回りまし \pau=5000\た")
+
+#time.sleep(2)
+motion.stopMove()
+%script
+
+u: (顔を覚えて)　お名前はなんですか？
+u:(私の名前は _~name です)　こんにちは、$1 さん　$learn_face = $1
+u: (覚えてますか) 試してみますね $face_reco = 1
+u: (座ってください) OK!!! %script
+ALProxy("ALRobotPosture").goToPosture("Sit",1)
+%script
+u: (こっち向いて) OK!! $face_track_body = 1
+
+u: (リセット) 了解しました。やめようかなああ?。
+%script
+memory = ALProxy("ALMemory")
+ALProxy("ALMotion").stopMove()
+behavior = ALProxy("ALBehaviorManager")
+behavior.stopBehavior('soccer-demonstration')
+memory.insertData("Damage",0)
+%script
+
+u: (ナオちゃん) はあい。私はここですよ^お。
+u: (面白いね) ありがとうございます。$damage =-1
+u: (今期の推しはなんですか) うーん。ピアノの森です。
+u: (誰に、似ていると思いますか) キリトかなあ、やっぱ。むしろキリトが俺に似てる。彼女もアスナに、だし、クラスの女子から突然告白されたこともあったな。これでも俺、おたくなんですけどね。
+u: (尊敬している人は) syamuさんです。
+u: (~lol) わいも、草生える
+u: (すきな声優は｛誰ですか｝) みもりすずこです。
+u: (生きる意味とは)今、死ぬ意味がないなら、それが生きる意味なのかもしれません。
+u: (復唱してみて) 何を復唱すればいいですか? #by kuwahara
+    u1: (_*) $1
+u:(e:Dialog/NotSpeaking20) ^rand[構って? 寂しいぜ? 辛いぜ? 眠いぜ? うふふ]
+u:(e:FaceCharacteristics/PersonSmiling) ["なに笑っているの??" "どうしたの??"]#by Fukai]
+#u:(e:FaceDetected)　どうもや！！
+#u:(e:EngagementZones/PersonMovedAway)いかんといて!! #意味不明
+#u:(e:EngagementZones/PersonApproached)こっちこいや!! #同じく意味不明
+u:([e:RearTactilTouched e:MiddleTactilTouched e:FrontTactilTouched])[もっと 撫で "て!"]
+%script
+memory = ALProxy("ALMemory")
+if not "Damage" in memory.getDataList("Damage"):
+    memory.insertData("Damage",0)
+damage = memory.getData("Damage")
+memory.insertData("Damage",damage-1)
+%script
+    #u1:(e:MiddleTactilTouched)中間らへんを触られた!!
+        #u2:(e:FrontTactilTouched) 撫でられた
+u:(e:DarknessDetection/DarknessDetected) "\vct=170\真っ暗だぜ!?"
+%script
+def test():
+    tts = ALProxy("ALTextToSpeech")
+    tts.say("関す呼び出しテスト")
+%script
+u:(e:BatteryChargingFlagChanged) %script
+memory = ALProxy("ALMemory")
+tts = ALProxy("ALTextToSpeech")
+if not memory.getData('BatteryChargingFlagChanged'):
+    tts.say("うげえ")
+else:
+    tts.say("わあ")
+%script
+u:(e:WavingDetection/PersonWavingRight) 手を振られた
+#u:(e:ALSoundLocalization/SoundLocated) 音源位置把握
+u:(ジュリアス録音) $sound_reco = 1
+u:(_[日経平均 ナスダック総合指数 ダウ平均株価] の調子は) $code = $1
+u:(~violent_word) ^rand["\emph=300\そんなことないですよオ!" "\emph=300\ひどいです!" ええっ　そんな　うう　そんなこという人だなんて思わなかった　きずつけられました　ロボットだと思って見くびらないでください　ひどいこと言わないで　泣きそう、なかないけど　ううっ、泣いちゃいますよ] $get_damage=2
+u:(調子はどうですか?) 
+%script
+memory = ALProxy("ALMemory")
+tts = ALProxy("ALTextToSpeech")
+if not "Damage" in memory.getDataList("Damage"):
+    tts.say("良くも悪くもないです")
+else:
+    if memory.getData("Damage") < 0:
+        tts.say("なかなかいいですよ")
+    elif memory.getData("Damage") > 0:
+        tts.say("ダメージを"+str(memory.getData("Damage"))+"受けています。")
+        tts.say("精神的に\pau=100\ボロボロです")
+    else:
+        tts.say("良くも悪くもないです")
+%script
+u:(_~name の好感度は?) 
+$target=$1
+%script
+
+
+memory = ALProxy("ALMemory")
+tts = ALProxy("ALTextToSpeech")
+p = memory.getData("target")
+if not p in  memory.getDataList(p):
+    memory.insertData(p,0)
+
+howLike=memory.getData(p)
+strHowLike=str(howLike)
+if memory.getData(p) <-5:
+    tts.say("えー"+p+"の現在の好感度は"+strHowLike+"ですよ。だいぶきらいです")
+elif memory.getData(p) <0:
+    tts.say("うーんと"+p+"の現在の好感度は"+strHowLike+"もっとやさしくしてくださいね。")
+elif memory.getData(p) <10:
+    tts.say("はーい\\pau=800\\"+p+"の現在の好感度は"+strHowLike+"ポイントです。やさしくしてくれて、ありがとうございます。")
+else:
+    tts.say("わーい\\pau=800\\"+p+"の現在の好感度は"+strHowLike+"です。だいすきです")
+%script
+
+
+u:(関数呼べ)
+%script
+test()self.onUnload()
+%script
+u:([オブリビエイト 忘却せよ])
+%script
+tts = ALProxy("ALTextToSpeech")
+fd = ALProxy("ALFaceDetection")
+fd.clearDatabase()
+tts.say("ぐえー")
+
+%script
